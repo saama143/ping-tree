@@ -1,12 +1,12 @@
 process.env.NODE_ENV = 'test'
 
-var test = require('ava')
-var servertest = require('servertest')
+const test = require('ava')
+const servertest = require('servertest')
 
-var server = require('../lib/server')
+const server = require('../lib/server')
 
 test.serial.cb('healthcheck', function (t) {
-  var url = '/health'
+  const url = '/health'
   servertest(server(), url, { encoding: 'json' }, function (err, res) {
     t.falsy(err, 'no error')
 
@@ -17,7 +17,7 @@ test.serial.cb('healthcheck', function (t) {
 })
 
 test.serial.cb('Get /api/targets -All Targets', function (t) {
-  var url = '/api/targets'
+  const url = '/api/targets'
   servertest(server(), url, { encoding: 'json' }, function (err, res) {
     t.falsy(err, 'no error')
     t.is(res.statusCode, 200, 'correct statusCode')
@@ -26,7 +26,7 @@ test.serial.cb('Get /api/targets -All Targets', function (t) {
 })
 
 test.serial.cb('Get /api/target/1 -Target By Id', function (t) {
-  var url = '/api/target/1'
+  const url = '/api/target/1'
   servertest(server(), url, { encoding: 'json' }, function (err, res) {
     t.falsy(err, 'no error')
     t.is(res.statusCode, 200, 'correct statusCode')
