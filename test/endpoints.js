@@ -16,7 +16,7 @@ test.serial.cb('healthcheck', function (t) {
   })
 })
 
-test.serial.cb('Get All Targets', function (t) {
+test.serial.cb('Get /api/targets -All Targets', function (t) {
   var url = '/api/targets'
   servertest(server(), url, { encoding: 'json' }, function (err, res) {
     t.falsy(err, 'no error')
@@ -25,7 +25,7 @@ test.serial.cb('Get All Targets', function (t) {
   })
 })
 
-test.serial.cb('Get Target By Id', function (t) {
+test.serial.cb('Get /api/target/1 -Target By Id', function (t) {
   var url = '/api/target/1'
   servertest(server(), url, { encoding: 'json' }, function (err, res) {
     t.falsy(err, 'no error')
@@ -39,32 +39,18 @@ const streamTest = (stream, obj) => {
   stream.end()
 }
 
-test.serial.cb('/route', (t) => {
-  const visitor = {
-    geoState: 'uk',
-    publisher: 'abc',
-    timestamp: '2018-07-19T23:28:59.513Z'
-  }
-
-  streamTest(servertest(server(), '/route', { method: 'POST' }, (err, res) => {
-    t.falsy(err, 'no error')
-    t.is(res.statusCode, 503)
-    t.end()
-  }), visitor)
-})
-
-test.serial.cb('POST /api/targets', t => {
+test.serial.cb('POST /api/targets -Add or Update Target', t => {
   const data = {
     id: '1',
     url: 'http://example.com',
     value: '0.50',
-    maxAcceptsPerDay: '10',
+    maxAcceptsPerDay: '50000',
     accept: {
       geoState: {
         $in: ['ca', 'ny']
       },
       hour: {
-        $in: ['13', '14', '15']
+        $in: ['13', '14', '15', '23', '24', '00']
       }
     }
   }
@@ -78,4 +64,47 @@ test.serial.cb('POST /api/targets', t => {
     t.is(res.statusCode, 200, 'correct statusCode')
     t.end()
   }), data)
+})
+
+test.serial.cb('Post /route -Get Route ca as geostate and 00 hour', (t) => {
+  const visitor = {
+    geoState: 'ca',
+    publisher: 'abc',
+    timestamp: '2018-07-19T00:28:59.513Z'
+  }
+  streamTest(servertest(server(), '/route', { method: 'POST' }, (err, res) => {
+    t.falsy(err, 'no error')
+    t.is(res.statusCode, 200)
+    t.end()
+  }), visitor)
+})
+
+test.serial.cb('Post /route -Get Route with no ca match', (t) => {
+  const visitor = {
+    geoState: 'uk',
+    publisher: 'abc',
+    timestamp: '2018-07-19T23:28:59.513Z'
+  }
+  streamTest(servertest(server(), '/route', { method: 'POST' }, (err, res) => {
+    const response = JSON.parse(res.body.toString())
+    t.falsy(err, 'no error')
+    t.is(res.statusCode, 503)
+    t.deepEqual(response, { status: 'fail', error: 'reject', decision: 'reject' })
+    t.end()
+  }), visitor)
+})
+
+test.serial.cb('Post /route -Get Route with no hour match', (t) => {
+  const visitor = {
+    geoState: 'ca',
+    publisher: 'abc',
+    timestamp: '2018-07-19T10:28:59.513Z'
+  }
+  streamTest(servertest(server(), '/route', { method: 'POST' }, (err, res) => {
+    const response = JSON.parse(res.body.toString())
+    t.falsy(err, 'no error')
+    t.is(res.statusCode, 503)
+    t.deepEqual(response, { status: 'fail', error: 'reject', decision: 'reject' })
+    t.end()
+  }), visitor)
 })
