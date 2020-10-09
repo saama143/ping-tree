@@ -20,7 +20,7 @@ async function getAllTargets () {
   for (const i in AllKeys) {
     promises.push(JSON.parse(await _execRedisAsync('get', AllKeys[i])))
   }
-  var allTargets = await Promise.all(promises)
+  const allTargets = await Promise.all(promises)
   return allTargets
 }
 
@@ -76,7 +76,7 @@ async function checkTarget (data, target) {
 
 // api/targets -GET
 const getTargetsHandle = async () => {
-  var targets = await getAllTargets()
+  const targets = await getAllTargets()
   return {
     code: 200,
     status: 'OK',
@@ -106,8 +106,8 @@ const getTargetByIdHandle = async (id) => {
 
 // route -POST
 const filterHandle = async (body) => {
-  var allTargets = await getAllTargets()
-  var filteredTargets = await filterByLimitAndHours(body, allTargets)
+  const allTargets = await getAllTargets()
+  const filteredTargets = await filterByLimitAndHours(body, allTargets)
   if (filteredTargets.length === 0) {
     return {
       code: 503,
@@ -123,12 +123,12 @@ const filterHandle = async (body) => {
     const date = datetime.toISOString().slice(0, 10)
     let result = await _execRedisAsync('get', 'LimitRecord:' + selectedTarget.id + ':' + body.publisher)
     if (result == null) {
-      var insertRecord = { hit: 1, date: date }
+      let insertRecord = { hit: 1, date: date }
       insertRecord = JSON.stringify(insertRecord)
       await _execRedisAsync('set', 'LimitRecord:' + selectedTarget.id + ':' + body.publisher, insertRecord)
     } else {
       result = JSON.parse(result)
-      var updateRecord = { hit: result.hit + 1, date: date }
+      let updateRecord = { hit: result.hit + 1, date: date }
       updateRecord = JSON.stringify(updateRecord)
       await _execRedisAsync('set', 'LimitRecord:' + selectedTarget.id + ':' + body.publisher, updateRecord)
       return {
